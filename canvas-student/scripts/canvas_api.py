@@ -1279,7 +1279,8 @@ def cmd_send(c: CanvasClient, a: argparse.Namespace) -> Any:
         data["context_code"] = f"course_{a.course}"
     if a.group:
         data["group_conversation"] = True
-    broad = [r for r in a.to if not str(r).isdigit()]
+    # conversations.html: a user is a numeric id or "uuid:..."; anything else (course_1, group_2...) is a context.
+    broad = [r for r in a.to if not (str(r).isdigit() or str(r).startswith("uuid:"))]
     summary = f"Send message '{a.subject}' to {', '.join(map(str, a.to))}"
     if broad:
         summary += f". WARNING: {', '.join(broad)} may reach many people (a whole course, group or role)"

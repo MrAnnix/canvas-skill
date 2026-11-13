@@ -694,6 +694,15 @@ class AuditFixTests(CanvasTestCase):
         self.assertEqual(code, canvas_api.EXIT_API_ERROR)
         self.assertIn("255", err)
 
+    def test_send_warns_only_for_context_recipients(self):
+        # conversations.html: recipients are user ids (numeric or "uuid:...") or course_/group_ contexts.
+        code, data, _ = self.run_cli("send", "--to", "7", "--to", "uuid:W9GQIcdo", "--subject", "Q", "--body", "Hola")
+        self.assertNotIn("WARNING", data["summary"])
+        for context in ("course_1_teachers", "group_4", "section_3"):
+            with self.subTest(context=context):
+                code, data, _ = self.run_cli("send", "--to", context, "--subject", "Q", "--body", "Hola")
+                self.assertIn("WARNING", data["summary"])
+
 
 class HelperTests(unittest.TestCase):
     def test_html_to_text(self):
