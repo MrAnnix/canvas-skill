@@ -54,6 +54,8 @@ DEFAULT_STREAM_LIMIT = 30       # activity stream / inbox can be very long
 DEFAULT_PLANNER_DAYS = 14
 DEFAULT_ANNOUNCEMENT_DAYS = 14
 MAX_NICKNAME_LENGTH = 60
+# A bearer token is printable ASCII without spaces (RFC 6750 b64token is stricter); quotes come from copy errors.
+TOKEN_PATTERN = re.compile(r"[!#-&(-~]+")
 # D11: quiz-taking and quiz question endpoints are refused for every command, including get/api.
 # quiz_submission_questions.html, quiz_submissions.html, new_quizzes.html (items hold questions).
 QUIZ_BLOCKED_ANY_METHOD = (re.compile(r"/quiz_submissions/[^/]+/questions(?=[/.]|$)"),
@@ -1599,6 +1601,9 @@ def main(argv: Sequence[str] | None = None, *, env: Mapping[str, str] | None = N
             raise missing_config_error(ENV_BASE_URL, "e.g. https://myschool.instructure.com", user_env_has)
         if not token:
             raise missing_config_error(ENV_TOKEN, "Canvas > Account > Settings > New Access Token", user_env_has)
+        if not TOKEN_PATTERN.fullmatch(token):  # never echo the value: it is password-equivalent
+            raise ConfigError(f"{ENV_TOKEN} contains spaces, quotes or non-ASCII characters, so it is not a valid "
+                              "token. Copy it again from Canvas and save it without surrounding quotes")
         client = CanvasClient(base_url, token, sleep=sleep)
         result = args.func(client, args)
     except ConfigError as exc:

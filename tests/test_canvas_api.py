@@ -643,6 +643,15 @@ class AuditFixTests(CanvasTestCase):
                 self.assertIn("<p>Hola ñ</p>", data["requests"][-1])
                 self.assertNotIn("﻿", data["requests"][-1])
 
+    def test_token_with_invalid_characters_is_a_config_error_without_echo(self):
+        for bad in ('"1234~abc"', "1234~abc def", "1234~abc”"):
+            with self.subTest(bad=bad):
+                code, _, err = self.run_cli("whoami", env={"CANVAS_BASE_URL": self.canvas.url, "CANVAS_API_TOKEN": bad})
+                self.assertEqual(code, canvas_api.EXIT_CONFIG_ERROR, err)
+                self.assertIn("CANVAS_API_TOKEN", err)
+                self.assertNotIn("1234~abc", err)
+        self.assertEqual(self.canvas.requests, [])
+
 
 class HelperTests(unittest.TestCase):
     def test_html_to_text(self):
