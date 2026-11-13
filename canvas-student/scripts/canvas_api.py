@@ -97,17 +97,17 @@ class UsageError(Exception):
 # --------------------------------------------------------------------------- helpers
 
 def normalize_base_url(raw: str) -> str:
-    """Return scheme://host[:port] for a Canvas instance, rejecting unsafe values."""
-    value = raw.strip().rstrip("/")
-    value = re.sub(r"/api/v1$", "", value)
-    parts = urllib.parse.urlsplit(value)
+    """Return scheme://host[:port] for a Canvas instance, rejecting unsafe values.
+
+    The API lives at https://<canvas>/api/v1 (index.html), so any path, query or fragment copied from the
+    browser address bar (a course page, ?login_success=1) is dropped.
+    """
+    parts = urllib.parse.urlsplit(raw.strip())
     if not parts.scheme or not parts.hostname:
         raise ConfigError(f"{ENV_BASE_URL} must be a full URL such as https://myschool.instructure.com")
     if parts.scheme != "https" and not (parts.scheme == "http" and parts.hostname in LOCAL_HOSTS):
         raise ConfigError(f"{ENV_BASE_URL} must use https (the token is sent with every request)")
-    if parts.query or parts.fragment:
-        raise ConfigError(f"{ENV_BASE_URL} must not contain a query string or fragment")
-    return value
+    return f"{parts.scheme}://{parts.netloc}"
 
 
 def origin_of(url: str) -> tuple[str, str, int | None]:

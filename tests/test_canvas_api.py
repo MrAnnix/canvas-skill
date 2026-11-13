@@ -652,6 +652,13 @@ class AuditFixTests(CanvasTestCase):
                 self.assertNotIn("1234~abc", err)
         self.assertEqual(self.canvas.requests, [])
 
+    def test_base_url_copied_from_the_browser_is_reduced_to_its_origin(self):
+        for raw in ("https://x.instructure.com/courses/123/assignments", "https://x.instructure.com/?login_success=1",
+                    "https://X.instructure.com:8443/login/canvas#top"):
+            with self.subTest(raw=raw):
+                self.assertEqual(canvas_api.normalize_base_url(raw).lower(),
+                                 "https://x.instructure.com" + (":8443" if ":8443" in raw else ""))
+
 
 class HelperTests(unittest.TestCase):
     def test_html_to_text(self):

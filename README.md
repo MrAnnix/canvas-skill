@@ -30,7 +30,7 @@ setx CANVAS_BASE_URL "https://yourschool.instructure.com"
 setx CANVAS_API_TOKEN "paste-token-here"
 ```
 
-Open a new terminal (and restart Claude) so the variables are picked up. `setx` stores them in your user environment in plain text, which is readable by programs running as you. Revoke the token in Canvas when you no longer need it.
+Use the address you open Canvas with; any path after the host is ignored. Open a new terminal (and restart Claude) so the variables are picked up. `setx` stores them in your user environment in plain text, which is readable by programs running as you. Revoke the token in Canvas when you no longer need it.
 
 ## 3. Install the skill
 
