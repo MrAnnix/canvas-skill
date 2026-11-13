@@ -630,6 +630,19 @@ class AuditFixTests(CanvasTestCase):
         self.assertIn("rate limit", err.lower())
         self.assertNotIn("not allowed for students", err)
 
+    def test_text_file_with_bom_or_utf16_is_decoded(self):
+        self.canvas.route("GET", "/api/v1/courses/1/assignments/5", payload={
+            "id": 5, "name": "Essay", "submission_types": ["online_text_entry"]})
+        # Notepad and PowerShell 5.1 `Out-File -Encoding utf8` write a UTF-8 BOM; PowerShell 5.1 `>` writes UTF-16.
+        for raw in ("﻿Hola ñ".encode("utf-8"), "Hola ñ".encode("utf-16")):
+            with self.subTest(raw=raw[:4]), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp, "answer.txt")
+                path.write_bytes(raw)
+                code, data, err = self.run_cli("submit", "1", "5", "--text-file", str(path))
+                self.assertEqual(code, 0, err)
+                self.assertIn("<p>Hola ñ</p>", data["requests"][-1])
+                self.assertNotIn("﻿", data["requests"][-1])
+
 
 class HelperTests(unittest.TestCase):
     def test_html_to_text(self):

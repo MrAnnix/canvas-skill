@@ -17,6 +17,7 @@ https://developerdocs.instructure.com/services/canvas).
 from __future__ import annotations
 
 import argparse
+import codecs
 import datetime as dt
 import html
 import http.client
@@ -225,6 +226,17 @@ def parse_kv(pairs: Sequence[str] | None) -> JsonDict:
 
 def today() -> dt.date:
     return dt.date.today()
+
+
+def read_text_file(path: str) -> str:
+    """Text of a file the user wrote on Windows: UTF-8 with or without BOM, or UTF-16 with BOM.
+
+    Notepad and PowerShell 5.1 `Out-File -Encoding utf8` add a UTF-8 BOM; PowerShell 5.1 `>` writes UTF-16.
+    """
+    raw = Path(path).read_bytes()
+    if raw.startswith((codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE)):
+        return raw.decode("utf-16")
+    return raw.decode("utf-8-sig")
 
 
 def quiz_block_reason(method: str, url: str) -> str | None:
@@ -744,9 +756,9 @@ def cmd_submit(c: CanvasClient, a: argparse.Namespace) -> Any:
         data["submission[url]"] = a.url
     else:
         try:
-            text = Path(a.text_file).read_text(encoding="utf-8") if a.text_file else a.text
+            text = read_text_file(a.text_file) if a.text_file else a.text
         except UnicodeDecodeError as exc:
-            raise CanvasError(f"{a.text_file} is not valid UTF-8 text; save it as UTF-8 and retry") from exc
+            raise CanvasError(f"{a.text_file} is not valid UTF-8 or UTF-16 text; save it as UTF-8 and retry") from exc
         if not text.strip():
             raise CanvasError("The text to submit is empty")
         data["submission[body]"] = text if a.html else text_to_html(text)
