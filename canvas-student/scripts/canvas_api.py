@@ -56,6 +56,7 @@ DEFAULT_ANNOUNCEMENT_DAYS = 14
 MAX_NICKNAME_LENGTH = 60
 # A bearer token is printable ASCII without spaces (RFC 6750 b64token is stricter); quotes come from copy errors.
 TOKEN_PATTERN = re.compile(r"[!#-&(-~]+")
+MAX_SUBJECT_LENGTH = 255       # conversations.html: "Maximum length is 255 characters."
 # D11: quiz-taking and quiz question endpoints are refused for every command, including get/api.
 # quiz_submission_questions.html, quiz_submissions.html, new_quizzes.html (items hold questions).
 QUIZ_BLOCKED_ANY_METHOD = (re.compile(r"/quiz_submissions/[^/]+/questions(?=[/.]|$)"),
@@ -1271,6 +1272,8 @@ def cmd_recipients(c: CanvasClient, a: argparse.Namespace) -> Any:
 
 
 def cmd_send(c: CanvasClient, a: argparse.Namespace) -> Any:
+    if len(a.subject) > MAX_SUBJECT_LENGTH:
+        raise CanvasError(f"The subject must be at most {MAX_SUBJECT_LENGTH} characters (it has {len(a.subject)})")
     data: JsonDict = {"recipients[]": a.to, "subject": a.subject, "body": a.body}
     if a.course:
         data["context_code"] = f"course_{a.course}"

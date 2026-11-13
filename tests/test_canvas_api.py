@@ -688,6 +688,12 @@ class AuditFixTests(CanvasTestCase):
         self.assertNotIn("LATE", data["summary"])
         self.assertNotIn("WARNING", data["summary"])
 
+    def test_send_checks_subject_length(self):
+        # conversations.html: subject "Maximum length is 255 characters."
+        code, _, err = self.run_cli("send", "--to", "7", "--subject", "x" * 256, "--body", "Hola")
+        self.assertEqual(code, canvas_api.EXIT_API_ERROR)
+        self.assertIn("255", err)
+
 
 class HelperTests(unittest.TestCase):
     def test_html_to_text(self):
