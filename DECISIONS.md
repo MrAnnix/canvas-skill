@@ -1,6 +1,6 @@
 # Work log and design decisions
 
-Date: 2026-11-12. Goal: a complete Claude skill that gives an agent access to Canvas LMS **for a student account**.
+Date: 2026-11-12. Goal: a complete agent skill (Agent Skills format) that gives an agent access to Canvas LMS **for a student account**.
 
 ## 1. Research
 
@@ -19,7 +19,7 @@ Several long pages (users, courses, assignments, submissions, discussion_topics,
 
 | # | Decision | Reason | Alternatives rejected |
 |---|---|---|---|
-| D1 | **Skill with a bundled CLI script**, not an MCP server | Works in Claude Code and anywhere skills run, with no server process. Progressive disclosure keeps context small: SKILL.md, then references, then the script. | An MCP server needs a running process and per-client config. Raw `curl` instructions would make every call re-derive pagination, uploads and redirects. |
+| D1 | **Skill with a bundled CLI script**, not an MCP server | Works in any agent that supports the open Agent Skills format (agentskills.io lists Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor and others), and any agent with a shell can run the CLI. No server process. Progressive disclosure keeps context small: SKILL.md, then references, then the script. | An MCP server needs a running process and per-client config. Raw `curl` instructions would make every call re-derive pagination, uploads and redirects. |
 | D2 | **Python standard library only** (3.10+) | Nothing to install or pin, so no supply-chain surface. Python 3.13 is present on this machine. | `requests`/`canvasapi` would add dependencies for little gain. |
 | D3 | **Token only from `CANVAS_API_TOKEN`**, never an argument | Arguments end up in shell history, process lists and chat transcripts. The OAuth page calls tokens password-equivalent. | `--token` flag; a config file inside the repo. |
 | D4 | **The token is sent only to the configured Canvas origin** (scheme, host, port). Automatic redirects are disabled and followed manually, dropping `Authorization` across hosts. URLs on other hosts are refused. | The upload docs say the token must not go to `upload_url`. Downloads may redirect to storage hosts. urllib's default redirect handler would forward the header. | Trusting urllib's redirects. |

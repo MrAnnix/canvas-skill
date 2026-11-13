@@ -115,7 +115,7 @@ The CLI never starts, answers or submits quizzes. See the academic-integrity sec
 |---|---|
 | `inbox [--scope unread\|starred\|archived\|sent]` | Conversations (default 30) with participants and last message. |
 | `unread-count` | `{"unread_count": "N"}`. |
-| `conversation ID [--mark-read]` | Full thread. It does **not** mark the thread as read unless `--mark-read` is given, so reading through Claude doesn't hide new messages from the user. |
+| `conversation ID [--mark-read]` | Full thread. It does **not** mark the thread as read unless `--mark-read` is given, so reading through the agent doesn't hide new messages from the user. |
 | `recipients --search NAME [--context course_ID] [--type user\|context]` | Finds user ids (or course/group contexts) to message. |
 | `send --to ID [--to ID2] --subject S --body B [--course ID] [--group]` **(write)** | New message. `--to` accepts user ids or contexts like `course_123`, which can reach a whole course, and the dry run then shows a WARNING for any recipient that is not a numeric user id or `uuid:...`. The subject is limited to 255 characters. Without `--group`, each recipient gets a private copy. |
 | `reply ID --body B` **(write)** | Replies in a conversation. |

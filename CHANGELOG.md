@@ -10,7 +10,7 @@ First public release.
 
 ### Added
 
-- `canvas-student` skill with a zero-dependency Python CLI for courses, grades, assignments, submissions (text, URL, file upload), feedback and rubrics, planner and calendar, modules, pages, files and downloads, announcements, discussions, quiz metadata and scores, groups and the inbox.
+- `canvas-student` skill in the open [Agent Skills](https://agentskills.io) format, usable by any agent that supports it, with a zero-dependency Python CLI for courses, grades, assignments, submissions (text, URL, file upload), feedback and rubrics, planner and calendar, modules, pages, files and downloads, announcements, discussions, quiz metadata and scores, groups and the inbox.
 - Dry run for every write unless `--confirm` is passed; full pagination; throttling retries; token sent only to the configured Canvas origin.
 - End-to-end tests against a local fake Canvas server, and CI on Linux and Windows.
 

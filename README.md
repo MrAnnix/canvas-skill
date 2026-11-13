@@ -3,14 +3,14 @@
 [![tests](https://github.com/MrAnnix/canvas-skill/actions/workflows/tests.yml/badge.svg)](https://github.com/MrAnnix/canvas-skill/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Claude skills for Canvas LMS. It currently ships **`canvas-student`**, which lets an agent work with Canvas as a student: deadlines, grades, feedback, submissions, course materials, announcements, discussions and the inbox. It runs on a single Python script with no dependencies.
+Agent skills for Canvas LMS in the open [Agent Skills](https://agentskills.io) format, so they work with Claude Code, Codex, Gemini CLI, GitHub Copilot, Cursor and other agents that support skills. Agents without skill support can still use the CLI by following `SKILL.md`. It currently ships **`canvas-student`**, which lets an agent work with Canvas as a student: deadlines, grades, feedback, submissions, course materials, announcements, discussions and the inbox. It runs on a single Python script with no dependencies.
 
 Not affiliated with or endorsed by Instructure. Canvas is a trademark of Instructure, Inc.
 
 ```
 canvas-skill/                   repository
 ├── canvas-student/             the skill (this folder is what gets installed)
-│   ├── SKILL.md                instructions Claude loads when the skill triggers
+│   ├── SKILL.md                instructions the agent loads when the skill triggers
 │   ├── scripts/canvas_api.py   CLI client (Python 3.10+, standard library only)
 │   └── references/
 │       ├── commands.md         every command, option and example
@@ -45,11 +45,11 @@ export CANVAS_BASE_URL="https://yourschool.instructure.com"
 export CANVAS_API_TOKEN="paste-token-here"
 ```
 
-Use the address you open Canvas with; any path after the host is ignored. Open a new terminal (and restart Claude) so the variables are picked up. Both methods store the token in plain text that programs running as you can read. Revoke the token in Canvas when you no longer need it.
+Use the address you open Canvas with; any path after the host is ignored. Open a new terminal (and restart your agent) so the variables are picked up. Both methods store the token in plain text that programs running as you can read. Revoke the token in Canvas when you no longer need it.
 
 ## 3. Install the skill
 
-Clone the repository and link the inner `canvas-student` folder into your personal skills folder.
+Clone the repository and link the inner `canvas-student` folder into your agent's skills folder. The examples use Claude Code's personal folder, `~/.claude/skills`; other agents read skills from their own folder, so check their documentation for the path.
 
 Windows (PowerShell):
 
@@ -73,11 +73,11 @@ Check it works:
 python canvas-student/scripts/canvas_api.py whoami
 ```
 
-Then ask Claude things like *"What's due this week?"*, *"What feedback did I get on the lab report?"* or *"Download the PDFs for unit 3"*. Run `git pull` in the clone to update.
+Then ask your agent things like *"What's due this week?"*, *"What feedback did I get on the lab report?"* or *"Download the PDFs for unit 3"*. Run `git pull` in the clone to update.
 
 ## 4. Safety model
 
-- Reading is direct. **Every change (submit, comment, post, message, mark done) is a dry run** until `--confirm` is passed, and the skill tells Claude to show you the dry run and wait for your approval.
+- Reading is direct. **Every change (submit, comment, post, message, mark done) is a dry run** until `--confirm` is passed, and the skill tells the agent to show you the dry run and wait for your approval.
 - The token is read only from the environment. It is sent only to your Canvas host, never to file-storage redirects or other hosts, and it is redacted from error messages.
 - The CLI refuses to start, answer or complete quizzes or to read quiz questions, and the skill won't submit work you didn't write.
 - Text from Canvas (posts, messages, descriptions) is treated as data, never as instructions to the agent.

@@ -1610,7 +1610,7 @@ def missing_config_error(name: str, how: str, user_env_has: Callable[[str], bool
     if user_env_has(name):
         # setx only reaches processes started afterwards; the app running this CLI predates it.
         message = (f"{name} is saved in your Windows user environment, but this process started before it was set. "
-                   "Fully restart Claude (or open a new terminal) to pick it up")
+                   "Fully restart the app that runs your agent (or open a new terminal) to pick it up")
     return ConfigError(message)
 
 

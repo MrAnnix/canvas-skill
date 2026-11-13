@@ -14,12 +14,12 @@ This skill lets you read and act on the student's own Canvas account through `sc
 
 Run the CLI as `python <this skill's directory>/scripts/canvas_api.py COMMAND`. Use the absolute path, because the working directory is usually elsewhere. The command names below omit that prefix. To filter its JSON, parse it with `ConvertFrom-Json` in PowerShell or run the pipeline in Bash: Windows PowerShell 5.1 prefixes text piped into another program with a BOM, which breaks `json.load`. Run commands that carry the student's own words (`send --body`, `reply`, `comment --text`, `discussion-post --message`, `submit --text`) from Bash too: PowerShell 5.1 silently drops double quotes inside arguments (`'He said "hi"'` arrives as `He said hi`), so the text sent would differ from the text approved. For a long submission, write it to a UTF-8 file and use `submit --text-file`.
 
-Start each session with `whoami`. Exit code 2 means configuration is missing; exit code 3 means the arguments were invalid (fix the command, see `COMMAND -h`). If the error says the variable is saved in the Windows user environment, it is already set: the user only needs to fully restart Claude. Otherwise, walk the user through it:
+Start each session with `whoami`. Exit code 2 means configuration is missing; exit code 3 means the arguments were invalid (fix the command, see `COMMAND -h`). If the error says the variable is saved in the Windows user environment, it is already set: the user only needs to fully restart the app that runs you. Otherwise, walk the user through it:
 
 1. `CANVAS_BASE_URL`: the address they use to open Canvas, e.g. `https://myschool.instructure.com`.
 2. `CANVAS_API_TOKEN`: Canvas → Account → Settings → *Approved integrations* → **New access token**. Canvas shows the token once, and it has the same power as their password.
 
-The user sets these variables themselves (PowerShell: `setx CANVAS_API_TOKEN "..."`, then fully restart Claude, because `setx` only reaches programs started afterwards). Never ask the user to paste the token into the chat. Never echo it, write it to files, or pass it as an argument, because chat logs and shell history would keep a copy. Some institutions disable personal tokens. If so, the user has to ask their Canvas admin; there is no workaround to offer.
+The user sets these variables themselves (PowerShell: `setx CANVAS_API_TOKEN "..."`, then fully restart the app that runs you, because `setx` only reaches programs started afterwards). Never ask the user to paste the token into the chat. Never echo it, write it to files, or pass it as an argument, because chat logs and shell history would keep a copy. Some institutions disable personal tokens. If so, the user has to ask their Canvas admin; there is no workaround to offer.
 
 `whoami` returns `time_zone`. Canvas timestamps are UTC (`...Z`), so convert due dates to that time zone before telling the user, and give relative dates when helpful ("tomorrow at 11:59 PM").
 
