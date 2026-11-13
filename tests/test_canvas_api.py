@@ -705,6 +705,14 @@ class AuditFixTests(CanvasTestCase):
 
 
 class HelperTests(unittest.TestCase):
+    def test_html_table_cells_stay_separated(self):
+        html = ("<table><tr><th>Item</th><th>Weight</th></tr><tr><td>Exam</td><td>40%</td></tr>"
+                "<tr><td><p>Labs</p></td><td><p>60%</p></td></tr></table>")
+        text = canvas_api.html_to_text(html)
+        self.assertIn("Item | Weight\nExam | 40%", text)
+        self.assertNotIn("Exam40%", text)
+        self.assertNotIn("Labs60%", text)
+
     def test_html_to_text(self):
         html = "<h1>Title</h1><p>Hello <a href='https://x.org'>link</a></p><ul><li>a</li><li>b</li></ul><script>bad()</script>"
         self.assertEqual(canvas_api.html_to_text(html), "Title\nHello link (https://x.org)\n- a\n- b")

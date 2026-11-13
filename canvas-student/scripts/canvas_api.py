@@ -164,13 +164,20 @@ class _TextExtractor(HTMLParser):
         self.parts: list[str] = []
         self._skip = 0
         self._links: list[str | None] = []
+        self._row_has_cell = False
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag in self.SKIP_TAGS:
             self._skip += 1
+        elif tag in ("td", "th"):  # keep cells apart: syllabus tables hold grade weights and dates
+            if self._row_has_cell:
+                self.parts.append(" | ")
+            self._row_has_cell = True
         elif tag == "li":
             self.parts.append("\n- ")
         elif tag in self.BLOCK_TAGS:
+            if tag == "tr":
+                self._row_has_cell = False
             self.parts.append("\n")
         elif tag == "a":
             self._links.append(dict(attrs).get("href"))
@@ -202,7 +209,7 @@ def html_to_text(value: str | None) -> str:
     parser.feed(value)
     parser.close()
     lines = (re.sub(r"[ \t\r\f\v ]+", " ", line).strip() for line in "".join(parser.parts).split("\n"))
-    return "\n".join(line for line in lines if line)
+    return "\n".join(line for line in lines if line.strip("| "))
 
 
 def pick(obj: Mapping[str, Any] | None, keys: Sequence[str]) -> JsonDict:
