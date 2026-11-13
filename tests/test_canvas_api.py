@@ -659,6 +659,21 @@ class AuditFixTests(CanvasTestCase):
                 self.assertEqual(canvas_api.normalize_base_url(raw).lower(),
                                  "https://x.instructure.com" + (":8443" if ":8443" in raw else ""))
 
+    def test_pagination_loop_is_an_error_not_a_hang(self):
+        base = self.canvas.url
+        calls = {"n": 0}
+
+        def looping(_record):
+            calls["n"] += 1
+            link = f'<{base}/api/v1/courses?page=2>; rel="next"' if calls["n"] < 50 else ""
+            return 200, ({"Link": link} if link else {}), [{"id": calls["n"]}]
+
+        self.canvas.routes[("GET", "/api/v1/courses")] = looping
+        code, _, err = self.run_cli("get", "courses")
+        self.assertEqual(code, canvas_api.EXIT_API_ERROR)
+        self.assertIn("pagination", err.lower())
+        self.assertLessEqual(calls["n"], 3)
+
 
 class HelperTests(unittest.TestCase):
     def test_html_to_text(self):

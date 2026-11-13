@@ -434,6 +434,7 @@ class CanvasClient:
         items: list[Any] = []
         url: str | None = path
         first = True
+        followed: set[str] = set()
         while url:
             resp = self.request("GET", url, params=query if first else None)
             first = False
@@ -444,6 +445,10 @@ class CanvasClient:
                 return page
             items.extend(page)
             url = next_link(resp.headers.get("link", ""))
+            if url in followed:  # a repeated rel="next" would otherwise loop forever
+                raise CanvasError(f"Canvas returned a pagination loop for {path}; results would be incomplete")
+            if url:
+                followed.add(url)
             if limit is not None and len(items) >= limit:
                 if len(items) > limit or url:
                     self.warnings.append(f"Showing the first {limit} results; more exist. Raise --limit to see them.")
