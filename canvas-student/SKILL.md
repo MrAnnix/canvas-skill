@@ -13,7 +13,7 @@ This skill lets you read and act on the student's own Canvas account through `sc
 
 Run the CLI as `python <this skill's directory>/scripts/canvas_api.py COMMAND`. Use the absolute path, because the working directory is usually elsewhere. The command names below omit that prefix. To filter its JSON, parse it with `ConvertFrom-Json` in PowerShell or run the pipeline in Bash: Windows PowerShell 5.1 prefixes text piped into another program with a BOM, which breaks `json.load`.
 
-Start each session with `whoami`. Exit code 2 means configuration is missing. If the error says the variable is saved in the Windows user environment, it is already set: the user only needs to fully restart Claude. Otherwise, walk the user through it:
+Start each session with `whoami`. Exit code 2 means configuration is missing; exit code 3 means the arguments were invalid (fix the command, see `COMMAND -h`). If the error says the variable is saved in the Windows user environment, it is already set: the user only needs to fully restart Claude. Otherwise, walk the user through it:
 
 1. `CANVAS_BASE_URL`: the address they use to open Canvas, e.g. `https://myschool.instructure.com`.
 2. `CANVAS_API_TOKEN`: Canvas → Account → Settings → *Approved integrations* → **New access token**. Canvas shows the token once, and it has the same power as their password.

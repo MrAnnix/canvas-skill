@@ -513,8 +513,9 @@ class ReviewFixTests(CanvasTestCase):
         self.assertEqual(sorted(query["state[]"]), ["available", "completed"])
 
     def test_limit_must_be_positive(self):
-        with self.assertRaises(SystemExit):
-            self.run_cli("courses", "--limit", "0")
+        code, _, err = self.run_cli("courses", "--limit", "0")
+        self.assertEqual(code, canvas_api.EXIT_USAGE_ERROR)
+        self.assertIn("--limit", err)
 
     def test_invalid_json_body_is_a_clean_error(self):
         code, _, err = self.run_cli("api", "POST", "users/self/files", "--json", "{bad")
@@ -589,6 +590,14 @@ class AuditFixTests(CanvasTestCase):
         self.canvas.route("GET", "/api/v1/courses/1/quizzes/3/submissions", payload={"quiz_submissions": []})
         code, data, err = self.run_cli("get", "courses/1/quizzes/3/submissions", "--key", "quiz_submissions")
         self.assertEqual((code, data), (0, []), err)
+
+    def test_usage_error_is_json_with_its_own_exit_code(self):
+        code, _, err = self.run_cli("courses", "--bogus")
+        self.assertEqual(code, canvas_api.EXIT_USAGE_ERROR)
+        self.assertNotEqual(code, canvas_api.EXIT_CONFIG_ERROR)
+        payload = json.loads(err)
+        self.assertEqual(payload["kind"], "usage")
+        self.assertIn("--bogus", payload["error"])
 
 
 class HelperTests(unittest.TestCase):

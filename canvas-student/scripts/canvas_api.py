@@ -69,6 +69,7 @@ WINDOWS_RESERVED_NAMES = frozenset(
 EXIT_OK = 0
 EXIT_API_ERROR = 1
 EXIT_CONFIG_ERROR = 2
+EXIT_USAGE_ERROR = 3            # distinct from 2 so a bad flag is never mistaken for missing configuration
 
 JsonDict = dict[str, Any]
 
@@ -83,6 +84,10 @@ class CanvasError(Exception):
 
 class ConfigError(Exception):
     """Missing or invalid configuration."""
+
+
+class UsageError(Exception):
+    """Invalid command-line arguments."""
 
 
 # --------------------------------------------------------------------------- helpers
@@ -1315,6 +1320,13 @@ def escape_path_ids(args: argparse.Namespace) -> None:
             setattr(args, name, [urllib.parse.quote(str(v), safe=":@") for v in value])
 
 
+class JsonArgumentParser(argparse.ArgumentParser):
+    """Raise UsageError instead of printing usage and exiting 2, which callers read as a config error."""
+
+    def error(self, message: str) -> None:  # type: ignore[override]
+        raise UsageError(f"{message}. {self.format_usage().strip()}")
+
+
 def build_parser() -> argparse.ArgumentParser:
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--full", action="store_true", help="return the raw Canvas JSON instead of a compact view")
@@ -1323,8 +1335,8 @@ def build_parser() -> argparse.ArgumentParser:
     write.add_argument("--confirm", action="store_true",
                        help="actually perform the change (without it a dry run is printed)")
 
-    parser = argparse.ArgumentParser(prog="canvas_api.py", description=__doc__.split("\n\n")[0],
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = JsonArgumentParser(prog="canvas_api.py", description=__doc__.split("\n\n")[0],
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True, metavar="COMMAND")
 
     def add(name: str, func: Callable, help_text: str, *, writes: bool = False) -> argparse.ArgumentParser:
@@ -1551,7 +1563,11 @@ def main(argv: Sequence[str] | None = None, *, env: Mapping[str, str] | None = N
     env = os.environ if env is None else env
     out = out or sys.stdout
     err = err or sys.stderr
-    args = build_parser().parse_args(argv)
+    try:
+        args = build_parser().parse_args(argv)
+    except UsageError as exc:
+        err.write(json.dumps({"error": str(exc), "kind": "usage"}, ensure_ascii=False) + "\n")
+        return EXIT_USAGE_ERROR
     escape_path_ids(args)
     client: CanvasClient | None = None
     try:

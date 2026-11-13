@@ -7,7 +7,7 @@ Invoke every command as `python <skill-dir>/scripts/canvas_api.py COMMAND [args]
 
 Commands marked **(write)** also accept `--confirm`. Without it they only print a dry run.
 
-IDs can be numeric or SIS-style (`sis_course_id:MAT-101`). They are URL-escaped into a single path segment. Output is JSON on stdout. Errors are JSON on stderr. Exit codes: 0 ok, 1 API/validation/file error, 2 configuration error.
+IDs can be numeric or SIS-style (`sis_course_id:MAT-101`). They are URL-escaped into a single path segment. Output is JSON on stdout. Errors are JSON on stderr. Exit codes: 0 ok, 1 API/validation/file/network error, 2 configuration error, 3 invalid arguments (`{"error": ..., "kind": "usage"}`).
 
 ## Contents
 1. Profile and courses
