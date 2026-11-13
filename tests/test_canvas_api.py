@@ -561,6 +561,36 @@ class SubmitValidationTests(CanvasTestCase):
         self.assertIn("60", err)
 
 
+class AuditFixTests(CanvasTestCase):
+    """Defects found in the hardening audit (2026-11-13)."""
+
+    def test_generic_commands_refuse_quiz_taking_endpoints(self):
+        # D11: no starting, answering or completing quizzes, and no question endpoints, even through get/api.
+        blocked = [
+            ["api", "POST", "courses/1/quizzes/3/submissions"],
+            ["api", "POST", "courses/1/quizzes/3/submissions/9/complete", "--confirm"],
+            ["api", "POST", "quiz_submissions/9/questions", "--json", "{}", "--confirm"],
+            ["api", "PUT", "quiz_submissions/9/questions/4/flag"],
+            ["api", "POST", "/api/v1/courses/1/quizzes/3//submissions?x=1", "--confirm"],
+            ["api", "POST", "courses/1/quizzes/3/submissions%2F9%2Fcomplete", "--confirm"],
+            ["get", "quiz_submissions/9/questions"],
+            ["get", "quiz_submissions/9/questions.json"],
+            ["get", f"{self.canvas.url}/api/v1/courses/1/quizzes/3/questions"],
+            ["get", "courses/1/quizzes/3/x/../questions"],
+            ["upload", __file__, "--endpoint", "courses/1/quizzes/3/submissions/self/files", "--confirm"],
+        ]
+        for argv in blocked:
+            with self.subTest(argv=argv):
+                code, _, err = self.run_cli(*argv)
+                self.assertEqual(code, canvas_api.EXIT_API_ERROR, err)
+                self.assertIn("quiz", err.lower())
+        self.assertEqual(self.canvas.requests, [])
+        # Reading your own attempts stays allowed.
+        self.canvas.route("GET", "/api/v1/courses/1/quizzes/3/submissions", payload={"quiz_submissions": []})
+        code, data, err = self.run_cli("get", "courses/1/quizzes/3/submissions", "--key", "quiz_submissions")
+        self.assertEqual((code, data), (0, []), err)
+
+
 class HelperTests(unittest.TestCase):
     def test_html_to_text(self):
         html = "<h1>Title</h1><p>Hello <a href='https://x.org'>link</a></p><ul><li>a</li><li>b</li></ul><script>bad()</script>"

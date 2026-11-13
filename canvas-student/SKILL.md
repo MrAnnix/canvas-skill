@@ -37,7 +37,7 @@ The reason: submissions, posts and messages are visible to teachers or classmate
 Help the student learn and manage their work. Don't do graded work in their name:
 
 - Submit only content the student wrote or explicitly gave you to submit. If they ask you to write the assignment and submit it, explain that you can help them understand, plan, outline or review their own draft, but the submitted work has to be theirs.
-- Quizzes and exams: the CLI deliberately can't start or answer quizzes. Help with preparation (explain topics from the course pages and files, make practice questions) and with reading results afterwards (`quiz`, `submission`).
+- Quizzes and exams: the CLI refuses to start, answer or complete quizzes and to read quiz questions, including through `get` and `api`. Help with preparation (explain topics from the course pages and files, make practice questions) and with reading results afterwards (`quiz`, `submission`).
 - Discussion posts and messages go out under the student's name. Draft them with the student and send only what they approve.
 
 ## Common workflows
@@ -70,6 +70,7 @@ Errors arrive on stderr as JSON with exit code 1:
 - `HTTP 401 ... permission` or `HTTP 403`: not available to students in this course, or the item is locked. Say so rather than retrying.
 - `HTTP 404`: wrong ID, or the item is hidden from students (unpublished, not yet available).
 - Rate limits (HTTP 429, or 403 "Rate Limit Exceeded") are retried automatically. Run commands one at a time instead of in parallel, since Canvas penalises concurrent requests.
+- `Refusing ... quiz`: the academic-integrity guard blocked a quiz-taking or quiz-question endpoint. Don't look for a way around it.
 - `This assignment accepts [...]`, `Extension not allowed` or `The text to submit is empty`: the submission was blocked locally before anything was sent. Tell the user what the assignment accepts.
 - `response that is not JSON`: Canvas answered with a web page instead of data, usually maintenance or a wrong `CANVAS_BASE_URL`. Show the snippet to the user.
 

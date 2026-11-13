@@ -135,7 +135,7 @@ The CLI never starts, answers or submits quizzes. See the academic-integrity sec
 get PATH [-p KEY=VALUE]... [--key NAME] [--limit N]
 api POST|PUT|DELETE PATH [-d KEY=VALUE]... [--json '{...}'] [--confirm]
 ```
-- `PATH` is relative to `/api/v1/` (`users/self/colors`), absolute (`/api/quiz/v1/...`), or a full URL on the same Canvas host. Other hosts are refused, so the token can't leak.
+- `PATH` is relative to `/api/v1/` (`users/self/colors`), absolute (`/api/quiz/v1/...`), or a full URL on the same Canvas host. Other hosts are refused, so the token can't leak. Quiz-taking and quiz-question endpoints (`.../quizzes/ID/submissions` writes, `quiz_submissions/...`, `.../questions`, New Quizzes `items`) are refused for academic integrity; `GET .../quizzes/ID/submissions` (your attempts) stays available.
 - Repeat `-p`/`-d` for arrays and use Canvas bracket names: `-p include[]=term -p include[]=teachers`, `-d calendar_event[title]=X`.
 - `get` always follows pagination when the response is a list. `-p per_page=N` is honored up to 100. For lists wrapped in an object (`{"quiz_submissions": [...]}`, `{"grading_periods": [...]}`), pass `--key quiz_submissions` so every page is merged. Object responses are returned as-is.
 - Use these for endpoints listed in `api-endpoints.md` that have no dedicated command (for example `users/self/colors`, `courses/ID/users/self/progress`, submission read state).

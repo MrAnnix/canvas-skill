@@ -22,6 +22,7 @@ import html
 import json
 import mimetypes
 import os
+import posixpath
 import re
 import shutil
 import sys
@@ -51,6 +52,13 @@ DEFAULT_STREAM_LIMIT = 30       # activity stream / inbox can be very long
 DEFAULT_PLANNER_DAYS = 14
 DEFAULT_ANNOUNCEMENT_DAYS = 14
 MAX_NICKNAME_LENGTH = 60
+# D11: quiz-taking and quiz question endpoints are refused for every command, including get/api.
+# quiz_submission_questions.html, quiz_submissions.html, new_quizzes.html (items hold questions).
+QUIZ_BLOCKED_ANY_METHOD = (re.compile(r"/quiz_submissions/[^/]+/questions(?=[/.]|$)"),
+                           re.compile(r"/quizzes/[^/]+/questions(?=[/.]|$)"),
+                           re.compile(r"^/api/quiz/v1/.*/items(?=[/.]|$)"))
+QUIZ_BLOCKED_WRITES = (re.compile(r"/quizzes/[^/]+/submissions(?=[/.]|$)"),  # start, complete, file answers
+                       re.compile(r"/quiz_submissions(?=[/.]|$)"))
 # Arguments interpolated into URL paths; each is escaped into exactly one path segment.
 PATH_ID_ARGS = ("course", "assignment", "module", "item", "topic", "quiz", "group", "id", "file_id", "reply_to",
                 "folder", "grading_period")
@@ -213,6 +221,17 @@ def today() -> dt.date:
     return dt.date.today()
 
 
+def quiz_block_reason(method: str, url: str) -> str | None:
+    """Why D11 refuses this request (quiz taking or quiz questions), or None if it is allowed."""
+    path = urllib.parse.unquote(urllib.parse.urlsplit(url).path)
+    path = posixpath.normpath(re.sub(r"/+", "/", path))  # `a//b`, `x/../y` and %2F cannot dodge the check
+    patterns = QUIZ_BLOCKED_ANY_METHOD + (QUIZ_BLOCKED_WRITES if method != "GET" else ())
+    if any(p.search(path) for p in patterns):
+        return (f"Refusing {method} {path}: starting, answering or completing quizzes and reading quiz questions "
+                "are blocked for academic integrity. Quiz settings and your scores are available with `quiz`.")
+    return None
+
+
 def iso_date(value: str) -> str:
     """Validate YYYY-MM-DD or a full ISO 8601 timestamp."""
     try:
@@ -274,6 +293,14 @@ class CanvasClient:
             relative = "api/v1/" + relative
         return f"{self.base_url}/{relative}"
 
+    def checked_url(self, method: str, path: str) -> str:
+        """url_for plus the D11 quiz guard; used for every request and before showing a dry run."""
+        url = self.url_for(path)
+        reason = quiz_block_reason(method, url)
+        if reason:
+            raise CanvasError(reason)
+        return url
+
     def _auth_headers(self, url: str) -> dict[str, str]:
         return {"Authorization": f"Bearer {self._token}"} if origin_of(url) == self._origin else {}
 
@@ -307,7 +334,7 @@ class CanvasClient:
 
     def request(self, method: str, path: str, *, params: Mapping[str, Any] | None = None,
                 data: Mapping[str, Any] | None = None, json_body: Any = None) -> Response:
-        url = self.url_for(path)
+        url = self.checked_url(method, path)
         if params:
             url += ("&" if "?" in url else "?") + encode_params(params)
         headers = {"Accept": "application/json", **self._auth_headers(url)}
@@ -1027,6 +1054,7 @@ def cmd_upload(c: CanvasClient, a: argparse.Namespace) -> Any:
     if a.folder_path:
         extra["parent_folder_path"] = a.folder_path
     endpoint = a.endpoint or "users/self/files"
+    c.checked_url("POST", endpoint)  # validate the host and the quiz guard before showing a plan
     return run_plan(Plan(f"Upload {path.name} ({path.stat().st_size} bytes) to {endpoint}",
                          [f"POST {endpoint} + upload {json.dumps(extra)}"],
                          lambda: pick(c.upload_file(endpoint, path, extra), FILE_KEYS + ["url"])), a.confirm)
@@ -1257,7 +1285,7 @@ def cmd_api(c: CanvasClient, a: argparse.Namespace) -> Any:
         json_body = json.loads(a.json) if a.json else None
     except ValueError as exc:
         raise CanvasError(f"--json is not valid JSON: {exc}") from exc
-    c.url_for(a.path)  # validate the host before showing a plan
+    c.checked_url(a.method, a.path)  # validate the host and the quiz guard before showing a plan
     shown = json.dumps(json_body if json_body is not None else data, ensure_ascii=False)
     return run_plan(Plan(f"{a.method} {a.path}", [f"{a.method} {a.path} {shown}"],
                          lambda: c.call(a.method, a.path, data=None if json_body is not None else data,

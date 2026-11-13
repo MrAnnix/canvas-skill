@@ -122,7 +122,7 @@ Paths are relative to `https://<canvas>`. `self` can replace any `:user_id`, per
 | GET .../quizzes/:id/submissions → `{"quiz_submissions":[...]}` (a student sees only their own) | `quiz` | Verified |
 | GET .../quizzes/:id/submission, .../submissions/:id/time | `get` | Verified |
 | GET /api/quiz/v1/courses/:id/quizzes (New Quizzes) | `quizzes --new` | Verified path; student access not stated |
-| POST .../quizzes/:id/submissions (start), POST .../submissions/:id/complete | **not wrapped** | Verified; excluded on purpose (see DECISIONS.md) |
+| POST .../quizzes/:id/submissions (start), POST .../submissions/:id/complete, /quiz_submissions/:id/questions, .../quizzes/:id/questions | **refused**, also through `get`/`api`/`upload` | Verified; excluded on purpose (D11) |
 
 ## 9. Groups, peer reviews, rubrics
 
