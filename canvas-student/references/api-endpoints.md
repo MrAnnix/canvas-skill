@@ -28,7 +28,7 @@ Paths are relative to `https://<canvas>`. `self` can replace any `:user_id`, per
 | Pagination | Lists default to 10 items. The general page says "an unspecified limit" for `per_page`, while per-endpoint docs say "Maximum of 100". The CLI requests 100 (clamping larger values) and always follows `Link` rel `next` until it is absent. URLs are opaque, so follow them verbatim. Header case is not guaranteed. | file.pagination.html (re-checked on developerdocs 2026-11-12) |
 | Throttling | The page says throttled requests get "429 Forbidden (Rate Limit Exceeded)". Canvas's own source answers **403** "403 Forbidden (Rate Limit Exceeded)" by default and 429 only when the `request_throttle.send_429_response` setting is on ([request_throttle.rb](https://github.com/instructure/canvas-lms/blob/master/app/middleware/request_throttle.rb)), so the CLI retries both. After 3 retries it reports a rate-limit error, not a permissions error. `X-Request-Cost` is always present; `X-Rate-Limit-Remaining` appears when throttling applies. Parallel requests pay a pre-flight penalty. No backoff schedule is documented. | file.throttling.html |
 | Encoding | POST/PUT take form encoding or JSON. Arrays repeat `key[]`, nested values use `a[b]`. Timestamps are ISO 8601 UTC. Booleans accept `true/false`. | index.html |
-| Uploads | 1) POST `name,size,content_type,parent_folder_path,on_duplicate` to a files endpoint, which returns `upload_url` and `upload_params`. 2) multipart POST to `upload_url` with every `upload_params` field unchanged, `file` last, and **no token**. 3) a 3xx means GET `Location` with the token; a 201 means GET `Location` for the File JSON. | file.file_uploads.html |
+| Uploads | 1) POST `name,size,content_type,parent_folder_path,on_duplicate` to a files endpoint, which returns `upload_url` and `upload_params`. 2) multipart POST to `upload_url` with every `upload_params` field unchanged, `file` last, and **no token**. 3) a 3xx means GET `Location` with the token; a 201 means GET `Location` for the File JSON. The uploads page names the comment endpoint `.../submissions/comments/self/files`; the Submission Comments page (`.../submissions/:user_id/comments/files`) is the routed path and is what the CLI uses. | file.file_uploads.html, submission_comments.html |
 
 ## 2. Users, profile, activity
 
@@ -57,6 +57,7 @@ Paths are relative to `https://<canvas>`. `self` can replace any `:user_id`, per
 | GET /api/v1/courses/:id/settings, /effective_due_dates | `get` | Summary |
 | GET /api/v1/users/self/enrollments `type[]=StudentEnrollment`, `state[]`, `include[]=current_points`, `grading_period_id` → `grades{current_score,final_score,current_grade,final_grade}` | `grades` | Verified ("a user can return his/her own enrollments") |
 | POST /api/v1/courses/:id/enrollments/:id/accept and /reject | `api POST` | Verified |
+| GET /api/v1/courses/:id/assignment_groups `include[]=assignments,submission` → `group_weight` per group (weights apply when the course has `apply_assignment_group_weights`) | `get` | Verified (assignment_groups.html); worked with a student token in a live check (2026-11-13) |
 | GET /api/v1/courses/:id/grading_periods → `{"grading_periods":[...]}` | `grading-periods` | Verified |
 
 ## 4. Assignments and submissions
@@ -119,7 +120,7 @@ Paths are relative to `https://<canvas>`. `self` can replace any `:user_id`, per
 | Endpoint | CLI | Status |
 |---|---|---|
 | GET /api/v1/courses/:id/quizzes, /quizzes/:id | `quizzes`, `quiz` | Verified. No question text is returned. |
-| GET .../quizzes/:id/submissions → `{"quiz_submissions":[...]}` (a student sees only their own) | `quiz` | Verified |
+| GET .../quizzes/:id/submissions → `{"quiz_submissions":[...]}` (a student sees only their own) | `quiz` | Verified. Side effect confirmed in source: the call queues grading of your attempts that are already past their time limit or completed but ungraded ([quiz_submissions_api_controller.rb#index](https://github.com/instructure/canvas-lms/blob/master/app/controllers/quizzes/quiz_submissions_api_controller.rb), `needs_grading?`); it never finishes an attempt that still has time. |
 | GET .../quizzes/:id/submission, .../submissions/:id/time | `get` | Verified |
 | GET /api/quiz/v1/courses/:id/quizzes (New Quizzes) | `quizzes --new` | Verified path; student access not stated |
 | POST .../quizzes/:id/submissions (start), POST .../submissions/:id/complete, /quiz_submissions/:id/questions, .../quizzes/:id/questions | **refused**, also through `get`/`api`/`upload` | Verified; excluded on purpose (D11) |

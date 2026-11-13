@@ -44,7 +44,7 @@ Several long pages (users, courses, assignments, submissions, discussion_topics,
 
 I followed red-green: `tests/test_canvas_api.py` was written first and failed on import, then the CLI was implemented until it passed.
 
-The tests run the real `main()` over real HTTP against a local fake Canvas (`http.server`). A second server on another port plays the storage host, so cross-origin behavior is tested. 43 tests cover:
+The tests run the real `main()` over real HTTP against a local fake Canvas (`http.server`). A second server on another port plays the storage host, so cross-origin behavior is tested. 58 tests cover:
 
 - configuration errors and URL normalization
 - bearer auth, bracket array params, Link pagination with `--limit` (including `upcoming`, the generic `get` with `--key`, the `per_page` clamp and the truncation warning), both throttling forms with `Retry-After`
@@ -56,7 +56,7 @@ The tests run the real `main()` over real HTTP against a local fake Canvas (`htt
 - planner override create/update, the calendar context cap, conversation read state, the send warning, threaded discussion rendering, quiz-submission unwrapping
 - a smoke run of every read command against empty responses
 
-Result: `Ran 43 tests ... OK`.
+Result: `Ran 58 tests ... OK` (43 at first release, 45 after the setx/BOM fixes, 58 after the 2026-11-13 audit).
 
 **Full review, 2026-11-12.** I re-read every line of the script and re-checked doubtful usages against developerdocs.instructure.com (users, courses, submissions, assignments, calendar_events, peer_reviews, file uploads). Defects fixed, each with a test written first (red, then green):
 
@@ -76,6 +76,24 @@ Result: `Ran 43 tests ... OK`.
 Verified as already correct: `missing_submissions` filters, `users/self`, nickname endpoints, `todo` pagination, the 400 on a wrong submission type, the 10-calendar limit, and the upload `Location` header (step 3). Not stated in the docs, so left as-is: a `while(1);` JSON prefix (none documented for token requests) and peer-review visibility for students.
 
 **Change, 2026-11-12:** at the user's request, every paginated call now follows pagination to the end. Before, `upcoming` and `get` without `--all` read only the first page. The pagination rule was re-checked on developerdocs.instructure.com. The tests for it were written first and failed (red) before the fix.
+
+**Hardening audit, 2026-11-13.** Every file re-read; endpoints re-checked against canvas.instructure.com/doc/api (file.pagination, file.throttling, file.file_uploads, submissions, submission_comments, quiz_submissions, quiz_submission_questions, conversations, assignments, assignment_groups, new_quizzes) and, where the docs were silent, against canvas-lms source. Ideas from `vishalsachdev/canvas-mcp` (MIT) and `DMontgomery40/mcp-canvas-lms` were read as references only; no code was copied. Each defect got a failing test first (red, then green):
+
+| Defect | Effect before | Fix |
+|---|---|---|
+| `get`/`api`/`upload --endpoint` reached quiz start, answer, complete and question endpoints | D11 and SKILL.md promised what the code did not enforce | Path is normalized (`%2F`, `//`, `..`) and refused for every request |
+| Argument errors exited 2 with plain-text usage | Read as "configuration missing" (exit 2), and not JSON | JSON `{"kind": "usage"}` on stderr, exit 3 |
+| Connection reset or truncated answer after the request was sent | Reported as "Local file error", or a traceback | `Network error` (exit 1), also during downloads |
+| Still throttled after 3 retries | Hint said "not allowed for students" | Says it is a rate limit |
+| `--text-file` with a UTF-8 BOM or UTF-16 (Notepad, PowerShell 5.1) | Invisible BOM submitted, or a misleading "not UTF-8" error | Decoded correctly |
+| Token with quotes, spaces or non-ASCII characters | Traceback (`UnicodeEncodeError`) or a puzzling 401 | Config error that does not echo the token |
+| `CANVAS_BASE_URL` copied with a path or query | Every call hit a wrong URL; the docstring already promised scheme://host[:port] | Reduced to the origin |
+| A repeated `rel="next"` link | Infinite loop | Error |
+| Group assignments and past-due submissions | Dry run silent | `WARNING` (group) and `LATE` in the summary |
+| `send` subject over 255 characters; `uuid:` recipients | Canvas error; false "whole course" warning | Checked locally; only contexts are flagged |
+| HTML tables (syllabus weights, schedules) | Cells merged (`Exam40%`) | Cells separated with a pipe |
+
+Also confirmed and documented, without code changes: PowerShell 5.1 drops double quotes inside native arguments (reproduced), so SKILL.md sends free text through Bash; Canvas content is untrusted input (SKILL.md rule); the plural quiz-submissions read queues grading only of attempts already out of time.
 
 ## 4. Limitations and open points
 

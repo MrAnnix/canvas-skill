@@ -60,4 +60,4 @@ Then ask Claude things like *"¿qué tengo pendiente esta semana?"*, *"what feed
 python -m unittest discover -s tests -v
 ```
 
-The 43 tests run the real CLI over HTTP against a local fake Canvas server. They cover full pagination of every list, throttling retries, error reporting, the 3-step upload, safe downloads, the dry-run guard and every command. They do **not** prove compatibility with a real Canvas instance. See *Limitations* in [DECISIONS.md](DECISIONS.md).
+The 58 tests run the real CLI over HTTP against a local fake Canvas server. They cover full pagination of every list, throttling retries, error reporting, the 3-step upload, safe downloads, the dry-run guard and every command. They do **not** prove compatibility with a real Canvas instance. See *Limitations* in [DECISIONS.md](DECISIONS.md).
