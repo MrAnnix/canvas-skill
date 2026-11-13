@@ -4,10 +4,6 @@ All notable changes are listed here. The format follows [Keep a Changelog](https
 
 ## [Unreleased]
 
-### Changed
-
-- Docs and the skill description are US English only. The Spanish trigger examples are replaced with English ones, and the description says the user may write in any language.
-
 ## [1.0.0] - 2026-11-13
 
 First public release.
