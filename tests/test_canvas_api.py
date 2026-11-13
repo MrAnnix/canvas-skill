@@ -52,6 +52,9 @@ class FakeServer:
                     status, headers, payload = 404, {}, {"errors": [{"message": "The specified resource does not exist."}]}
                 else:
                     status, headers, payload = route(record)
+                if status is None:  # simulate a server that drops the connection without answering
+                    self.close_connection = True
+                    return
                 raw = payload if isinstance(payload, bytes) else json.dumps(payload).encode()
                 self.send_response(status)
                 for key, value in headers.items():
@@ -598,6 +601,24 @@ class AuditFixTests(CanvasTestCase):
         payload = json.loads(err)
         self.assertEqual(payload["kind"], "usage")
         self.assertIn("--bogus", payload["error"])
+
+    def test_dropped_connection_is_a_network_error(self):
+        self.canvas.routes[("GET", "/api/v1/users/self/profile")] = lambda _r: (None, {}, b"")
+        code, _, err = self.run_cli("whoami")
+        self.assertEqual(code, canvas_api.EXIT_API_ERROR)
+        self.assertIn("Network error", err)
+        self.assertNotIn("Local file error", err)
+
+    def test_dropped_connection_during_download_is_a_network_error(self):
+        storage = FakeServer()
+        self.addCleanup(storage.close)
+        self.canvas.route("GET", "/api/v1/files/9", payload={"id": 9, "display_name": "a.pdf",
+                                                             "url": f"{storage.url}/blob/9"})
+        storage.routes[("GET", "/blob/9")] = lambda _r: (None, {}, b"")
+        with tempfile.TemporaryDirectory() as tmp:
+            code, _, err = self.run_cli("download", "9", "--dest", tmp)
+        self.assertEqual(code, canvas_api.EXIT_API_ERROR)
+        self.assertIn("Network error", err)
 
 
 class HelperTests(unittest.TestCase):

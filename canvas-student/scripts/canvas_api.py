@@ -19,6 +19,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import html
+import http.client
 import json
 import mimetypes
 import os
@@ -325,6 +326,10 @@ class CanvasClient:
             raise CanvasError(f"Network error contacting {urllib.parse.urlsplit(url).netloc}: {exc.reason}") from exc
         except TimeoutError as exc:
             raise CanvasError(f"Timed out contacting {urllib.parse.urlsplit(url).netloc}") from exc
+        except (OSError, http.client.HTTPException) as exc:
+            # urllib wraps only errors raised while sending; a reset or truncated answer surfaces raw.
+            raise CanvasError(f"Network error contacting {urllib.parse.urlsplit(url).netloc}: "
+                              f"{exc or type(exc).__name__}") from exc
 
     @staticmethod
     def _is_throttled(resp: Response) -> bool:
@@ -480,6 +485,9 @@ class CanvasClient:
                 raise CanvasError(f"Download failed: {self.redact(self._error_message(resp))}", exc.code) from exc
             except urllib.error.URLError as exc:
                 raise CanvasError(f"Network error during download: {exc.reason}") from exc
+            except (ConnectionError, TimeoutError, http.client.HTTPException) as exc:
+                # Network failures after sending; local file errors (other OSErrors) still reach main().
+                raise CanvasError(f"Network error during download: {exc or type(exc).__name__}") from exc
         raise CanvasError("Download failed: too many redirects")
 
 

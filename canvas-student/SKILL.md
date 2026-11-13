@@ -70,6 +70,7 @@ Errors arrive on stderr as JSON with exit code 1:
 - `HTTP 401 ... permission` or `HTTP 403`: not available to students in this course, or the item is locked. Say so rather than retrying.
 - `HTTP 404`: wrong ID, or the item is hidden from students (unpublished, not yet available).
 - Rate limits (HTTP 429, or 403 "Rate Limit Exceeded") are retried automatically. Run commands one at a time instead of in parallel, since Canvas penalises concurrent requests.
+- `Network error`: the connection failed or was cut. Retry once for a read; for a write, check in Canvas (`submission`, `inbox`) whether it went through before retrying, so nothing is sent twice.
 - `Refusing ... quiz`: the academic-integrity guard blocked a quiz-taking or quiz-question endpoint. Don't look for a way around it.
 - `This assignment accepts [...]`, `Extension not allowed` or `The text to submit is empty`: the submission was blocked locally before anything was sent. Tell the user what the assignment accepts.
 - `response that is not JSON`: Canvas answered with a web page instead of data, usually maintenance or a wrong `CANVAS_BASE_URL`. Show the snippet to the user.
