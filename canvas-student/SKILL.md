@@ -2,6 +2,7 @@
 name: canvas-student
 description: >-
   Work with the Canvas LMS as a student through its REST API, using a bundled zero-dependency Python CLI. It covers courses, grades, assignments and deadlines, the to-do list, planner and calendar, missing work, submitting assignments (text, URL or file uploads), feedback and rubrics, modules, pages, files and downloads, announcements, discussions, quizzes (metadata and scores), groups and the Canvas inbox. Use this skill whenever the user mentions Canvas, Instructure, their LMS or "campus virtual", or asks about their courses, homework, deadlines, grades, teacher feedback, course materials, announcements or messages from teachers, even without naming Canvas. Examples: "¿qué tengo pendiente esta semana?", "entrega la práctica 2", "qué nota llevo en Física", "descarga los apuntes del tema 3", "did my professor reply?".
+license: MIT
 compatibility: Python 3.10+ (standard library only). Needs the CANVAS_BASE_URL and CANVAS_API_TOKEN environment variables.
 ---
 

@@ -1,0 +1,2 @@
+# Same LF line endings on every OS, so diffs and the skill files stay identical.
+* text=auto eol=lf
