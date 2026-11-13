@@ -11,7 +11,7 @@ This skill lets you read and act on the student's own Canvas account through `sc
 
 ## Setup check
 
-Run the CLI as `python <this skill's directory>/scripts/canvas_api.py COMMAND`. Use the absolute path, because the working directory is usually elsewhere. The command names below omit that prefix. To filter its JSON, parse it with `ConvertFrom-Json` in PowerShell or run the pipeline in Bash: Windows PowerShell 5.1 prefixes text piped into another program with a BOM, which breaks `json.load`.
+Run the CLI as `python <this skill's directory>/scripts/canvas_api.py COMMAND`. Use the absolute path, because the working directory is usually elsewhere. The command names below omit that prefix. To filter its JSON, parse it with `ConvertFrom-Json` in PowerShell or run the pipeline in Bash: Windows PowerShell 5.1 prefixes text piped into another program with a BOM, which breaks `json.load`. Run commands that carry the student's own words (`send --body`, `reply`, `comment --text`, `discussion-post --message`, `submit --text`) from Bash too: PowerShell 5.1 silently drops double quotes inside arguments (`'Dijo "hola"'` arrives as `Dijo hola`), so the text sent would differ from the text approved. For a long submission, write it to a UTF-8 file and use `submit --text-file`.
 
 Start each session with `whoami`. Exit code 2 means configuration is missing; exit code 3 means the arguments were invalid (fix the command, see `COMMAND -h`). If the error says the variable is saved in the Windows user environment, it is already set: the user only needs to fully restart Claude. Otherwise, walk the user through it:
 
