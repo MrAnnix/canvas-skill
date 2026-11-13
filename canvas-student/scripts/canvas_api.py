@@ -372,8 +372,8 @@ class CanvasClient:
             raise CanvasError(self.redact(self._error_message(resp)), resp.status)
         return resp
 
-    @staticmethod
-    def _error_message(resp: Response) -> str:
+    @classmethod
+    def _error_message(cls, resp: Response) -> str:
         detail = ""
         try:
             payload = json.loads(resp.body)
@@ -389,7 +389,10 @@ class CanvasClient:
                 else:
                     detail = str(payload.get("message") or payload.get("error") or "")
         message = f"HTTP {resp.status}" + (f": {detail}" if detail else "")
-        if resp.status == 401:
+        if cls._is_throttled(resp):
+            message += (f" (Canvas rate limit: still throttled after {MAX_THROTTLE_RETRIES} retries; "
+                        "wait a minute, then run one command at a time)")
+        elif resp.status == 401:
             message += (" (the token is invalid, expired or revoked; create a new one in Canvas)"
                         if "www-authenticate" in resp.headers else " (you do not have permission for this)")
         elif resp.status == 403:

@@ -620,6 +620,16 @@ class AuditFixTests(CanvasTestCase):
         self.assertEqual(code, canvas_api.EXIT_API_ERROR)
         self.assertIn("Network error", err)
 
+    def test_persistent_throttling_is_not_reported_as_forbidden(self):
+        # app/middleware/request_throttle.rb answers 403 by default (429 only behind a setting).
+        self.canvas.route("GET", "/api/v1/users/self/profile", status=403,
+                          payload=b"403 Forbidden (Rate Limit Exceeded)\n", headers={"Content-Type": "text/plain"})
+        code, _, err = self.run_cli("whoami")
+        self.assertEqual(code, canvas_api.EXIT_API_ERROR)
+        self.assertEqual(len(self.sleeps), canvas_api.MAX_THROTTLE_RETRIES)
+        self.assertIn("rate limit", err.lower())
+        self.assertNotIn("not allowed for students", err)
+
 
 class HelperTests(unittest.TestCase):
     def test_html_to_text(self):
