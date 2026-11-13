@@ -674,6 +674,20 @@ class AuditFixTests(CanvasTestCase):
         self.assertIn("pagination", err.lower())
         self.assertLessEqual(calls["n"], 3)
 
+    def test_submit_dry_run_flags_group_and_late_submissions(self):
+        self.canvas.route("GET", "/api/v1/courses/1/assignments/5", payload={
+            "id": 5, "name": "Lab", "submission_types": ["online_text_entry"], "group_category_id": 7,
+            "due_at": "2020-01-01T23:59:00Z"})
+        code, data, err = self.run_cli("submit", "1", "5", "--text", "Informe")
+        self.assertEqual(code, 0, err)
+        self.assertIn("group", data["summary"])
+        self.assertIn("LATE", data["summary"])
+        self.canvas.route("GET", "/api/v1/courses/1/assignments/5", payload={
+            "id": 5, "name": "Lab", "submission_types": ["online_text_entry"], "due_at": "2999-01-01T00:00:00Z"})
+        code, data, err = self.run_cli("submit", "1", "5", "--text", "Informe")
+        self.assertNotIn("LATE", data["summary"])
+        self.assertNotIn("WARNING", data["summary"])
+
 
 class HelperTests(unittest.TestCase):
     def test_html_to_text(self):

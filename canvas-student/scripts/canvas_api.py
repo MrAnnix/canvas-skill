@@ -241,6 +241,17 @@ def read_text_file(path: str) -> str:
     return raw.decode("utf-8-sig")
 
 
+def parse_timestamp(value: Any) -> dt.datetime | None:
+    """Canvas ISO 8601 timestamp (`...Z`) as an aware datetime, or None when absent or malformed."""
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = dt.datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else None
+
+
 def quiz_block_reason(method: str, url: str) -> str | None:
     """Why D11 refuses this request (quiz taking or quiz questions), or None if it is allowed."""
     path = urllib.parse.unquote(urllib.parse.urlsplit(url).path)
@@ -794,6 +805,11 @@ def cmd_submit(c: CanvasClient, a: argparse.Namespace) -> Any:
             summary += f" of {total} allowed"
             if previous >= total:
                 summary += "; WARNING: no attempts left, Canvas will likely reject it"
+    if asg.get("group_category_id"):  # assignments.html: set "if this is a group assignment"
+        summary += "; WARNING: group assignment, the submission may count for your whole group"
+    due = parse_timestamp(asg.get("due_at"))  # assignments.html: due_at already reflects your overrides
+    if due and due < dt.datetime.now(dt.timezone.utc):
+        summary += f"; LATE: it was due at {asg['due_at']}, so Canvas will likely mark it late"
     return run_plan(Plan(summary, requests, execute), a.confirm)
 
 

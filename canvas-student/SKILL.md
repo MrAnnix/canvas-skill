@@ -30,7 +30,7 @@ Read-only commands run directly. Every command that changes something in Canvas 
 2. Show the user the `summary` and anything they wrote: the text, the file names, the recipients.
 3. Rerun with `--confirm` only after the user explicitly approves that exact action.
 
-The reason: submissions, posts and messages are visible to teachers or classmates, and some can't be undone (a submission counts as an attempt). Approval covers one action; ask again for the next one. If a dry-run summary says `RESUBMISSION` or `WARNING` (no attempts left, or a message that reaches a whole course), point it out to the user.
+The reason: submissions, posts and messages are visible to teachers or classmates, and some can't be undone (a submission counts as an attempt). Approval covers one action; ask again for the next one. If a dry-run summary says `RESUBMISSION`, `LATE` or `WARNING` (no attempts left, a group assignment that may count for the whole group, or a message that reaches a whole course), point it out to the user before asking for approval.
 
 ## Academic integrity
 
