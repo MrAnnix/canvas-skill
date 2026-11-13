@@ -37,7 +37,7 @@ Several long pages (users, courses, assignments, submissions, discussion_topics,
 | D16 | **`calendar` caps at 10 context codes**, putting the personal calendar first and warning the user | The docs say extra codes are silently ignored. | Silent truncation. |
 | D17 | **Generic `get`/`api` escape hatches** with the same auth, automatic pagination, host check, dry-run guard and D11 quiz guard | "All features" includes endpoints not worth a dedicated command (colors, read state, comment edits, group join). | Dozens of thin commands. |
 | D18 | **Time zones are left to the agent** (`whoami` returns `time_zone`) | `zoneinfo` needs the `tzdata` package on Windows, which would break D2. | Converting in the script. |
-| D19 | **Repository docs in English**; answers to the user follow their language | Follows the global rule for text written into repositories. The skill's description includes Spanish trigger phrases. | |
+| D19 | **Repository docs in English**; answers to the user follow their language | Follows the global rule for text written into repositories. The skill's description gives English trigger examples and says the user may write in any language. | |
 | D20 | **Unsupported submission types** (`media_recording`, `student_annotation`, `basic_lti_launch`) are not wrapped | They need Canvas's media or annotation UI or an LTI tool. The ids they need can't be produced from a CLI. | |
 
 ## 3. Testing
@@ -98,7 +98,7 @@ Also confirmed and documented, without code changes: PowerShell 5.1 drops double
 ## 4. Limitations and open points
 
 - **No real-instance verification.** No Canvas account or token was available, so behavior against a live instance is untested. The likeliest gaps are fields that vary by Canvas version or institution settings, and the endpoints tagged *Summary*. Run `whoami`, `courses`, `planner` and a dry-run `submit` once with a real token.
-- **Skill evals not run.** skill-creator's with/without-skill evaluation loop needs real Canvas data to judge outputs. Suggested first prompts: "¿Qué tengo que entregar esta semana y qué me falta?", "Resume el feedback de mi última práctica de <curso>", "Entrega <fichero> en la tarea <nombre>" (it should stop at the dry run).
+- **Skill evals not run.** skill-creator's with/without-skill evaluation loop needs real Canvas data to judge outputs. Suggested first prompts: "What do I have to submit this week, and what am I missing?", "Summarize the feedback on my latest lab in <course>", "Submit <file> to the <assignment> assignment" (it should stop at the dry run).
 - Teacher settings can hide grades, statistics or quiz results. Empty fields are expected then.
 - Uploads read the whole file into memory. That's fine for typical coursework, not for multi-GB files.
 - Personal tokens can be disabled or forced to expire by the institution. OAuth developer keys require an admin and are out of scope.

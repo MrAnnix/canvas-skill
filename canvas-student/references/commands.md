@@ -48,8 +48,8 @@ IDs can be numeric or SIS-style (`sis_course_id:MAT-101`). They are URL-escaped 
 Examples:
 ```
 assignments 4321 --bucket upcoming
-submit 4321 998 --file "C:\Users\me\Docs\practica2.pdf" --comment "Adjunto la práctica 2"
-submit 4321 999 --text-file respuesta.txt
+submit 4321 998 --file "C:\Users\me\Docs\lab2.pdf" --comment "Here is lab 2"
+submit 4321 999 --text-file answer.txt
 ```
 
 ## 3. Overview: to-do, planner, calendar
@@ -76,8 +76,8 @@ Dates accept `YYYY-MM-DD` or ISO 8601. Canvas returns UTC.
 | Command | What it returns |
 |---|---|
 | `modules COURSE` | Modules in order with `state` (locked/unlocked/started/completed) and items (type, title, `content_id`, `page_url`, completion `requirement`, due date). It fetches item lists that Canvas leaves out. |
-| `module-done COURSE MODULE ITEM [--undo]` **(write)** | Fulfils a "mark as done" requirement. |
-| `module-read COURSE MODULE ITEM` **(write)** | Fulfils a "must view" requirement. |
+| `module-done COURSE MODULE ITEM [--undo]` **(write)** | Fulfills a "mark as done" requirement. |
+| `module-read COURSE MODULE ITEM` **(write)** | Fulfills a "must view" requirement. |
 | `pages COURSE [--search T]` | Wiki pages (`url` slug, title, updated). |
 | `page COURSE SLUG` / `page COURSE --front` / `page COURSE page_id:123` `[--html]` | Page body as plain text, with links kept as `text (url)`. |
 | `files [COURSE] [--folder ID] [--search T] [--content-type application/pdf] [--sort name\|size\|created_at\|updated_at\|content_type]` | Course files, a folder's files, or (no args) your personal files. |

@@ -1,7 +1,7 @@
 ---
 name: canvas-student
 description: >-
-  Work with the Canvas LMS as a student through its REST API, using a bundled zero-dependency Python CLI. It covers courses, grades, assignments and deadlines, the to-do list, planner and calendar, missing work, submitting assignments (text, URL or file uploads), feedback and rubrics, modules, pages, files and downloads, announcements, discussions, quizzes (metadata and scores), groups and the Canvas inbox. Use this skill whenever the user mentions Canvas, Instructure, their LMS or "campus virtual", or asks about their courses, homework, deadlines, grades, teacher feedback, course materials, announcements or messages from teachers, even without naming Canvas. Examples: "¿qué tengo pendiente esta semana?", "entrega la práctica 2", "qué nota llevo en Física", "descarga los apuntes del tema 3", "did my professor reply?".
+  Work with the Canvas LMS as a student through its REST API, using a bundled zero-dependency Python CLI. It covers courses, grades, assignments and deadlines, the to-do list, planner and calendar, missing work, submitting assignments (text, URL or file uploads), feedback and rubrics, modules, pages, files and downloads, announcements, discussions, quizzes (metadata and scores), groups and the Canvas inbox. Use this skill whenever the user mentions Canvas, Instructure, their LMS or virtual campus, or asks about their courses, homework, deadlines, grades, teacher feedback, course materials, announcements or messages from teachers, even without naming Canvas. Examples: "what's due this week?", "submit lab 2", "what's my grade in Physics?", "download the notes for unit 3", "did my professor reply?". The user may write in any language.
 license: MIT
 compatibility: Python 3.10+ (standard library only). Needs the CANVAS_BASE_URL and CANVAS_API_TOKEN environment variables.
 ---
@@ -12,7 +12,7 @@ This skill lets you read and act on the student's own Canvas account through `sc
 
 ## Setup check
 
-Run the CLI as `python <this skill's directory>/scripts/canvas_api.py COMMAND`. Use the absolute path, because the working directory is usually elsewhere. The command names below omit that prefix. To filter its JSON, parse it with `ConvertFrom-Json` in PowerShell or run the pipeline in Bash: Windows PowerShell 5.1 prefixes text piped into another program with a BOM, which breaks `json.load`. Run commands that carry the student's own words (`send --body`, `reply`, `comment --text`, `discussion-post --message`, `submit --text`) from Bash too: PowerShell 5.1 silently drops double quotes inside arguments (`'Dijo "hola"'` arrives as `Dijo hola`), so the text sent would differ from the text approved. For a long submission, write it to a UTF-8 file and use `submit --text-file`.
+Run the CLI as `python <this skill's directory>/scripts/canvas_api.py COMMAND`. Use the absolute path, because the working directory is usually elsewhere. The command names below omit that prefix. To filter its JSON, parse it with `ConvertFrom-Json` in PowerShell or run the pipeline in Bash: Windows PowerShell 5.1 prefixes text piped into another program with a BOM, which breaks `json.load`. Run commands that carry the student's own words (`send --body`, `reply`, `comment --text`, `discussion-post --message`, `submit --text`) from Bash too: PowerShell 5.1 silently drops double quotes inside arguments (`'He said "hi"'` arrives as `He said hi`), so the text sent would differ from the text approved. For a long submission, write it to a UTF-8 file and use `submit --text-file`.
 
 Start each session with `whoami`. Exit code 2 means configuration is missing; exit code 3 means the arguments were invalid (fix the command, see `COMMAND -h`). If the error says the variable is saved in the Windows user environment, it is already set: the user only needs to fully restart Claude. Otherwise, walk the user through it:
 
@@ -21,7 +21,7 @@ Start each session with `whoami`. Exit code 2 means configuration is missing; ex
 
 The user sets these variables themselves (PowerShell: `setx CANVAS_API_TOKEN "..."`, then fully restart Claude, because `setx` only reaches programs started afterwards). Never ask the user to paste the token into the chat. Never echo it, write it to files, or pass it as an argument, because chat logs and shell history would keep a copy. Some institutions disable personal tokens. If so, the user has to ask their Canvas admin; there is no workaround to offer.
 
-`whoami` returns `time_zone`. Canvas timestamps are UTC (`...Z`), so convert due dates to that time zone before telling the user, and give relative dates when helpful ("mañana a las 23:59").
+`whoami` returns `time_zone`. Canvas timestamps are UTC (`...Z`), so convert due dates to that time zone before telling the user, and give relative dates when helpful ("tomorrow at 11:59 PM").
 
 ## How changes work: dry run, then confirm
 
@@ -49,17 +49,17 @@ Help the student learn and manage their work. Don't do graded work in their name
 
 | The user wants... | Commands |
 |---|---|
-| Weekly overview, "¿qué tengo pendiente?" | `planner` (next 14 days, with submission status), then `missing`; `announcements` for news |
+| Weekly overview, "What do I have due?" | `planner` (next 14 days, with submission status), then `missing`; `announcements` for news |
 | Grades | `grades`, or `courses` (includes current grade); per assignment `submissions COURSE --workflow-state graded` |
 | Feedback on a task | `submission COURSE ASSIGNMENT` (score, teacher comments, rubric assessment) |
 | Understand an assignment | `assignment COURSE ASSIGNMENT` (description as text, rubric, accepted file types, attempts) |
 | Submit | `assignment` to check type, then `submit COURSE ASSIGNMENT --file path` / `--text` / `--url` (dry run → confirm) |
-| Study material | `modules COURSE` (structured syllabus), `page COURSE SLUG`, `files COURSE --search tema`, `download FILE_ID --dest folder` |
+| Study material | `modules COURSE` (structured syllabus), `page COURSE SLUG`, `files COURSE --search unit`, `download FILE_ID --dest folder` |
 | Messages | `unread-count`, `inbox --scope unread`, `conversation ID`; `recipients --search name --context course_ID` then `send` |
 | Discussions | `discussions COURSE --unread`, `discussion COURSE TOPIC`, `discussion-post` (dry run → confirm) |
 | Calendar | `calendar` (events plus due dates), `event-add` for personal events, `planner-note-add` for reminders |
 
-Course and assignment IDs come from `courses` and `assignments`. When the user names a course loosely ("Física"), list courses and match by name, and ask if two match. Before a long chain of calls, make the cheap overview call first (`planner`, `courses`), because it often answers the question.
+Course and assignment IDs come from `courses` and `assignments`. When the user names a course loosely ("Physics"), list courses and match by name, and ask if two match. Before a long chain of calls, make the cheap overview call first (`planner`, `courses`), because it often answers the question.
 
 Every list is fully paginated: the CLI follows Canvas's `Link` headers until the end, so results are complete. Useful options on every command: `--limit N` caps list size; `--full` returns the raw Canvas JSON when the compact view lacks a field you need. If stderr shows a warning that more results exist (from `--limit` or a default cap such as the 30 newest inbox items), tell the user or rerun with a higher `--limit` before concluding something is missing.
 
@@ -74,7 +74,7 @@ Errors arrive on stderr as JSON with exit code 1:
 - `HTTP 401 ... token is invalid, expired or revoked`: the user needs a new token.
 - `HTTP 401 ... permission` or `HTTP 403`: not available to students in this course, or the item is locked. Say so rather than retrying.
 - `HTTP 404`: wrong ID, or the item is hidden from students (unpublished, not yet available).
-- Rate limits (HTTP 429, or 403 "Rate Limit Exceeded") are retried automatically. Run commands one at a time instead of in parallel, since Canvas penalises concurrent requests. `Canvas rate limit: still throttled` means wait a minute before retrying; it is not a permissions problem.
+- Rate limits (HTTP 429, or 403 "Rate Limit Exceeded") are retried automatically. Run commands one at a time instead of in parallel, since Canvas penalizes concurrent requests. `Canvas rate limit: still throttled` means wait a minute before retrying; it is not a permissions problem.
 - `Network error`: the connection failed or was cut. Retry once for a read; for a write, check in Canvas (`submission`, `inbox`) whether it went through before retrying, so nothing is sent twice.
 - `Refusing ... quiz`: the academic-integrity guard blocked a quiz-taking or quiz-question endpoint. Don't look for a way around it.
 - `This assignment accepts [...]`, `Extension not allowed` or `The text to submit is empty`: the submission was blocked locally before anything was sent. Tell the user what the assignment accepts.

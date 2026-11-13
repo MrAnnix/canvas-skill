@@ -73,7 +73,7 @@ Check it works:
 python canvas-student/scripts/canvas_api.py whoami
 ```
 
-Then ask Claude things like *"¿qué tengo pendiente esta semana?"*, *"what feedback did I get on the lab report?"* or *"descarga los PDFs del tema 3"*. Run `git pull` in the clone to update.
+Then ask Claude things like *"What's due this week?"*, *"What feedback did I get on the lab report?"* or *"Download the PDFs for unit 3"*. Run `git pull` in the clone to update.
 
 ## 4. Safety model
 

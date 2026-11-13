@@ -2,6 +2,12 @@
 
 All notable changes are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Docs and the skill description are US English only. The Spanish trigger examples are replaced with English ones, and the description says the user may write in any language.
+
 ## [1.0.0] - 2026-11-13
 
 First public release.
@@ -25,4 +31,5 @@ First public release.
 - `submit --text-file` reads UTF-8 with BOM and UTF-16; `CANVAS_BASE_URL` is reduced to its origin; pagination loops stop with an error.
 - The submit dry run flags group assignments and late submissions; `send` checks the subject length and warns only for context recipients; HTML tables keep their cells apart.
 
+[Unreleased]: https://github.com/MrAnnix/canvas-skill/compare/v1.0.0...HEAD
 [1.0.0]: https://github.com/MrAnnix/canvas-skill/releases/tag/v1.0.0
